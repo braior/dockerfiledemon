@@ -1,0 +1,67 @@
+
+FROM centos:7
+MAINTAINER braior@163.com
+
+RUN yum install -y install epel-release && \
+    yum -y install wget  libxml2 libxml2-devel openssl openssl-devel curl curl-devel libjpeg-turbo libjpeg-turbo-devel libpng-devel libpng freetype-devel freetype icu libicu-devel libicu libmcrypt libmcrypt-devel libxslt libxslt-devel php-mysql && \
+    yum -y groupinstall "Development Tools" && \
+    yum provides "*/applydeltarpm" && \ 
+    yum install deltarpm -y && \   
+    yum clean all && \
+    groupadd www && \
+    useradd -g www www && \
+    rm -rf /var/cache/yum/*   
+
+RUN wget https://www.php.net/distributions/php-7.1.15.tar.gz && \
+    tar zxf php-7.1.15.tar.gz && \
+    cd php-7.1.15 && \
+    ./configure --prefix=/usr/local/php71 \
+    --with-config-file-path=/usr/local/php71/etc \
+    --with-config-file-scan-dir=/usr/local/php71/conf.d \
+    --enable-fpm --with-fpm-user=www \
+    --with-fpm-group=www \
+    --with-mysql=mysqlnd \
+    --with-mysqli=mysqlnd \
+    --with-pdo-mysql=mysqlnd \
+    --with-iconv-dir \
+    --with-freetype-dir=/usr/local/freetype \
+    --with-jpeg-dir \
+    --with-png-dir \
+    --with-zlib \
+    --with-libxml-dir=/usr \
+    --enable-xml \
+    --disable-rpath \
+    --enable-bcmath \
+    --enable-shmop \
+    --enable-sysvsem \
+    --enable-inline-optimization \
+    --with-curl \
+    --enable-mbregex \
+    --enable-mbstring \
+    --with-mcrypt \ 
+    --enable-ftp \
+    --with-gd \
+    --enable-gd-native-ttf \
+    --with-openssl \
+    --with-mhash \
+    --enable-pcntl \
+    --enable-sockets \
+    --with-xmlrpc \
+    --enable-zip \
+    --enable-soap \
+    --with-gettext \
+    --disable-fileinfo \
+    --enable-opcache \
+    --enable-intl \
+    --with-xsl && \
+    make -j 4 && make install && \
+    cp /usr/local/php71/etc/php-fpm.conf.default /usr/local/php71/etc/php-fpm.conf && \
+    cp ./php.ini-production  /usr/local/php71/etc/php.ini && \
+    cp /usr/local/php71/etc/php-fpm.d/www.conf.default /usr/local/php71/etc/php-fpm.d/www.conf && \
+    cp ./sapi/fpm/init.d.php-fpm /etc/init.d/php-fpm && \
+    chmod +x /etc/init.d/php-fpm && \
+    cd / && rm -rf php-7.1.5*
+
+EXPOSE 9000
+
+CMD ["/etc/init.d/php-fpm","start"]
