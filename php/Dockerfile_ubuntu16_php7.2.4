@@ -37,38 +37,36 @@ ENV SWOOLE_VERSION 4.0.3
 ENV HIREDIS_VERSION 0.13.3
 # 设置时间
 
-ADD sources.list /etc/apt/
 RUN /bin/cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
     && echo 'Asia/Shanghai' > /etc/timezone \
 # 扩展依赖
     #&& cp /etc/apt/sources.list /etc/apt/sources.list.bak \
     #&& sed -i "s/archive\.ubuntu\.com/mirrors\.163\.com/g" /etc/apt/sources.list \
-    && adduser --system --no-create-home --shell /bin/false --group --disabled-login www \
+    #&& adduser --system --no-create-home --shell /bin/false --group --disabled-login www \
     && apt-get update \
-    #&& apt-get install -y --allow-unauthenticated gnupg2 \
-    #&& apt-key update \
-    && apt-get install -y --allow-unauthenticated \
+    && apt-get install -y \
         curl \
         wget \
         git \
         zip \
         libz-dev \
         libssl-dev \
+        libcurl3 \
         libnghttp2-dev \
         libpcre3-dev \
         librabbitmq-dev \
         libmemcached-dev \
         zlib1g-dev \
     && apt-get clean \
-    && apt-get autoremove 
+    && apt-get autoremove \
+    && rm -rf /var/lib/apt/lists/*
 
 # Composer安装
 # Mysqli 扩展 自带 直接安装即可(当前数据库使用的mysqli查询的)
 # PDO 扩展 自带 直接安装即可
 # Bcmath 扩展 自带 直接安装即可
 
-RUN #curl -sS https://getcomposer.org/installer | php \
-    wget https://getcomposer.org/composer.phar \
+RUN curl -sS https://getcomposer.org/installer | php \
     && mv composer.phar /usr/local/bin/composer \
     && composer self-update --clean-backups \
     && docker-php-ext-install mysqli \
@@ -76,7 +74,7 @@ RUN #curl -sS https://getcomposer.org/installer | php \
     && docker-php-ext-install bcmath \
 
 # amqp 扩展下载 pecl 本地安装 开启扩展
-    &&  wget https://pecl.php.net/get/amqp-${AMQP_VERSION}.tgz -O /tmp/amqp.tgz \
+    && wget https://pecl.php.net/get/amqp-${AMQP_VERSION}.tgz -O /tmp/amqp.tgz \
     && pecl install /tmp/amqp.tgz \
     && rm -rf /tmp/amqp.tgz \
     && docker-php-ext-enable amqp \
