@@ -50,6 +50,7 @@ RUN /bin/cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
         git \
         zip \
         libz-dev \
+        libpng-dev \
         libssl-dev \
         libcurl3 \
         libnghttp2-dev \
@@ -69,6 +70,7 @@ RUN /bin/cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
 RUN curl -sS https://getcomposer.org/installer | php \
     && mv composer.phar /usr/local/bin/composer \
     && composer self-update --clean-backups \
+    && docker-php-ext-install gd \
     && docker-php-ext-install mysqli \
     && docker-php-ext-install pdo_mysql \
     && docker-php-ext-install bcmath \
