@@ -1,0 +1,158 @@
+﻿！！！！！
+注意事项：在构建dockerfile的时候，curl包最后再安装
+！！！！！
+
+
+1、安装mysql++
+
+	方法一：
+	网站：https://tangentsoft.com/mysqlpp/home
+	
+	【1】 wget https://tangentsoft.com/mysqlpp/releases/mysql++-3.2.4.tar.gz
+	
+	【2】tar -zxvf mysql++-3.2.4.tar.gz
+	
+	【3】sudo apt-get install libmysqlclient-dev
+	
+	【4】 ./configure --prefix=/usr
+	
+	【5】 make
+	
+	【6】 sudo make install
+	
+	方法二（未测试）：
+	
+	【1】 sudo apt-get install libmysql++-dev
+
+2、安装hiredis
+
+	网站:https://github.com/redis/hiredis
+	
+	【1】 git clone https://github.com/redis/hiredis
+	
+	【2】 make
+	
+	【2】 sudo make install
+	
+	
+3、安装protobuf
+	
+	网站：https://github.com/protocolbuffers/protobuf/releases
+	
+	【1】 wget https://github.com/protocolbuffers/protobuf/releases/download/v3.6.1/protobuf-all-3.6.1.tar.gz
+		
+	【2】tar -zxvf protobuf-all-3.6.1.tar.gz
+	
+	【3】sudo apt-get install autoconf automake libtool curl make g++ unzip
+	
+	【4】./configure
+	
+	【5】make
+	
+	【6】sudo make instll
+	
+	【7】sudo ldconfig
+######################安装位置
+	
+4、安装gpc(版本1.16.0x)
+
+	参照：https://github.com/grpc/grpc/blob/master/BUILDING.md
+	apt-get install build-essential autoconf libtool pkg-config
+	apt-get install libgflags-dev libgtest-dev
+	apt-get install clang libc++-dev
+	git clone -b v1.16.x https://github.com/grpc/grpc
+	cd grpc
+	mkdir build
+
+          modify .gitmodule file
+          change url of submodule "third_party/boringssl-with-bazel" to https://github.com/google/boringssl.git
+          git submodule sync
+      
+	git submodule update --init
+	make
+	make install
+
+5、jsoncpp
+
+	【1】sudo apt-get install libjsoncpp-dev
+
+6、curl
+
+【1】wget https://curl.haxx.se/download/curl-7.65.3.tar.gz
+
+【2】tar -zxvf curl-7.65.3.tar.gz
+
+【3】mkdir build 
+
+【4】cd build
+
+【5】cmake ..
+
+【6】make -j4
+
+【7】sudo make install
+ 
+【8】sudo ldconfig
+
+7、catch
+【1】git clone https://github.com/catchorg/Catch2.git
+
+【2】mkdir build 
+
+【3】cmake..
+
+【4】make -j4
+
+【5】sudo make install
+
+【6】sudo ldconfig 
+
+	
+8、安装libev
+
+	【1】sudo apt-get install libev-dev
+
+9、安装mysql	
+	
+	【1】sudo apt-get install mysql-server mysql-common mysql-client
+
+10、安装mysqlcpp连接池	
+	
+	【1】sudo apt-get install libmysqlcppconn-dev
+	
+11、安装redis
+	【1】sudo apt-get install redis-tools
+	
+	
+12、yaml 库的安装
+	
+	【1】git clone https://github.com/jbeder/yaml-cpp.git
+
+	【2】cd yaml-cpp # 进入克隆的文件夹
+	
+	【3】mkdir build
+
+	【4】cd build
+
+	【5】cmake ..
+
+	【6】make
+
+	【7】make install
+	
+13、json-rpc-cpp
+
+【1】git clone git://github.com/cinemast/libjson-rpc-cpp.git
+
+【2】mkdir -p libjson-rpc-cpp/build
+
+【3】cd libjson-rpc-cpp/build
+报错：apt-get install libargtable2-0
+      apt-get install libargtable2-dev
+      apt-get install libmicrohttpd-dev
+
+【4】cmake .. && make -j4
+
+【5】sudo make install
+
+【6】sudo ldconfig     

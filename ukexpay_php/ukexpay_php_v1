@@ -1,0 +1,148 @@
+FROM php:7.3-fpm
+
+LABEL maintainer="Draula" version="v0.1-2"
+
+# workman need
+ENV GRPC_ENABLE_FORK_SUPPORT 1
+ENV GRPC_POLL_STRATEGY epoll1
+
+# protobuf 
+ENV PROTOBUF 3.6.1
+
+# event 扩展
+# ENV EVENT_VERSION 2.3.0
+
+# redis 扩展
+ENV PHPREDIS_VERSION 4.0.0
+
+# amqp 扩展
+ENV AMQP_VERSION 1.9.4
+
+# grpc 扩展
+ENV GRPC_VERSION 1.19.0
+
+# ADD grpc /opt/grpc
+ADD protobuf-all-3.6.1.tar.gz /opt/
+
+RUN apt-get update \
+  && apt-get install -y git wget cron \
+     openssl libssl-dev \
+     g++ libtool autoconf automake \
+     libjpeg-dev \
+     libpng-dev \
+     libevent-dev \
+     libfreetype6-dev \
+     librabbitmq-dev \     
+
+# install protobuf
+    # RUN tar -xf /opt/tmp/protobuf-${PROTOBUF_VERSION}.tar.gz \
+    && cd /opt/protobuf-${PROTOBUF} \
+    && ./configure && make -j$(nproc) && make install &&  ldconfig \
+    && rm -rf /opt/protobuf-${PROTOBUF} \
+    
+    && apt-get clean \
+    #&& apt-get autoremove \
+    && rm -rf /var/lib/apt/lists/*
+
+
+RUN docker-php-ext-install pcntl sockets mysqli opcache pdo_mysql\
+    && docker-php-ext-enable opcache \
+    && apt-get install libevent-dev -y \
+    # && pecl install pdo_mysql \
+    && pecl install event \
+    && docker-php-ext-enable event \
+    && docker-php-ext-configure gd \
+          --enable-gd-native-ttf \
+          --with-freetype-dir=/usr/include/freetype2 \
+          --with-png-dir=/usr/include \
+          --with-jpeg-dir=/usr/include \
+    && docker-php-ext-install -j$(nproc) gd \
+    && docker-php-ext-install bcmath \
+    #&& echo "extension=event.so" > /usr/local/etc/php/conf.d/event.ini \
+    && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin --filename=composer \
+    && composer --ansi --version --no-interaction \
+
+# amqp 扩展下载 pecl 本地安装 开启扩展
+    && wget https://pecl.php.net/get/amqp-${AMQP_VERSION}.tgz -O /tmp/amqp.tgz \
+    && pecl install /tmp/amqp.tgz \
+    && rm -rf /tmp/amqp.tgz \
+    && docker-php-ext-enable amqp \
+
+# Redis 扩展下载 pecl本地安装 开启扩展
+    && wget http://pecl.php.net/get/redis-${PHPREDIS_VERSION}.tgz -O /tmp/redis.tgz \
+    && pecl install /tmp/redis.tgz \
+    && rm -rf /tmp/redis.tgz \
+    && docker-php-ext-enable redis \
+
+# grpc 扩展下载 pecl本地安装 开启扩展
+    && wget http://pecl.php.net/get/grpc-${GRPC_VERSION}.tgz -O /tmp/grpc.tgz \
+    && pecl install /tmp/grpc.tgz \
+    && rm -rf /tmp/grpc.tgz \
+    && docker-php-ext-enable grpc
+
+## msgpack 扩展下载 pecl本地安装 开启扩展(延迟队列使用减少源数据占用空间)
+#    && wget http://pecl.php.net/get/msgpack-${MSGPACK_VERSION}.tgz -O /tmp/msgpack.tgz \
+#    && pecl install /tmp/msgpack.tgz \
+#    && rm -rf /tmp/msgpack.tgz \
+#    && docker-php-ext-enable msgpack 
+
+## memcached 扩展下载 pecl本地安装 开启扩展 前面已经通过 apt-get安装了libmemcached-dev依赖
+#    && wget http://pecl.php.net/get/memcached-${MEMCACHED_VERSION}.tgz -O /tmp/memcached.tgz \
+#    && pecl install /tmp/memcached.tgz \
+#    && rm -rf /tmp/memcached.tgz \
+#    && docker-php-ext-enable memcached
+#
+## mongodb 扩展下载 pecl本地安装 开启扩展 前面已经通过 
+#    && wget http://pecl.php.net/get/mongodb-${MONGODB_VERSION}.tgz -O /tmp/mongodb.tgz \
+#    && pecl install /tmp/mongodb.tgz \
+#    && rm -rf /tmp/mongodb.tgz \
+#    && docker-php-ext-enable mongodb
+#
+#
+## xhprof github上下载支持php7的扩展 安装 开启扩展
+#    && wget https://github.com/longxinH/xhprof/archive/v${XHPROF_VERSION}.tar.gz -O /tmp/xhprof.tar.gz \
+#    && mkdir -p /tmp/xhprof \
+#    && tar -xf /tmp/xhprof.tar.gz -C /tmp/xhprof --strip-components=1 \
+#    && rm /tmp/xhprof.tar.gz \
+#    && ( \
+#        cd /tmp/xhprof/extension \
+#        && phpize \
+#        && ./configure  \
+#        && make -j$(nproc) \
+#        && make install \
+#    ) \
+#    && rm -r /tmp/xhprof \
+#    && docker-php-ext-enable xhprof
+#
+#
+## Hiredis依赖安装
+#RUN wget https://github.com/redis/hiredis/archive/v${HIREDIS_VERSION}.tar.gz -O /tmp/hiredis.tar.gz \
+#  && mkdir -p /tmp/hiredis \
+#    && tar -xf /tmp/hiredis.tar.gz -C /tmp/hiredis --strip-components=1 \
+#    && rm /tmp/hiredis.tar.gz \
+#    && ( \
+#        cd /tmp/hiredis \
+#        && make -j$(nproc) \
+#        && make install \
+#        && ldconfig \
+#    ) \
+#    && rm -r /tmp/hiredis
+#
+## Swoole 扩展安装 开启扩展
+#RUN wget https://github.com/swoole/swoole-src/archive/v${SWOOLE_VERSION}.tar.gz -O /tmp/swoole.tar.gz \
+#    && mkdir -p /tmp/swoole \
+#    && tar -xf /tmp/swoole.tar.gz -C /tmp/swoole --strip-components=1 \
+#    && rm /tmp/swoole.tar.gz \
+#    && ( \
+#        cd /tmp/swoole \
+#        && phpize \
+#        && ./configure --enable-async-redis --enable-mysqlnd --enable-openssl --enable-http2 \
+#        && make -j$(nproc) \
+#        && make install \
+#    ) \
+#    && rm -r /tmp/swoole \
+#    && docker-php-ext-enable swoole
+
+EXPOSE 9000 82
+
+CMD ["/usr/local/sbin/php-fpm"]

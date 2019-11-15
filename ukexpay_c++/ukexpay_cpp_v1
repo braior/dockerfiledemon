@@ -1,0 +1,128 @@
+# Base Image
+FROM ubuntu:16.04
+
+# Author
+MAINTAINER braior@163.com
+
+# environment
+# install mysql++ hiredis protobuf grpc jsoncpp curl catch libev
+# mysql mysqlcpp redis yaml json-rpc-cpp
+# total:13
+
+# Environment Variable
+ENV MYSQL_CPP_VERSION 3.2.4
+ENV PROTOBUF_VERSION 3.6.1
+ENV GRPC_VERSION v1.16.x
+# ENV CURL_VERSION 7.65.3
+
+# ADD https://tangentsoft.com/mysqlpp/releases/mysql++-${MYSQL_CPP_VERSION}.tar.gz /opt/tmp/
+ADD mysql++-${MYSQL_CPP_VERSION}.tar.gz /opt/tmp/
+
+# ADD https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOBUF_VERSION}/protobuf-all-${PROTOBUF_VERSION}.tar.gz /opt/tmp/
+ADD protobuf-all-${PROTOBUF_VERSION}.tar.gz /opt/tmp/
+
+# ADD https://curl.haxx.se/download/curl-${CURL_VERSION}.tar.gz /opt/tmp/
+#ADD curl-${CURL_VERSION}.tar.gz /opt/tmp/
+
+ADD grpc /opt/tmp/grpc
+
+RUN apt-get update \
+    && apt-get install -y \
+    curl autoconf automake libtool \
+    libssl-dev uuid-dev \
+    make g++ unzip git cmake \
+    libgflags-dev libgtest-dev \
+    build-essential  pkg-config \
+    libjsoncpp-dev \
+    libev-dev \
+    libcurl4-openssl-dev \
+    libjsonrpccpp-dev libjsonrpccpp-tools \
+    
+    # install libyaml-cpp
+    libyaml-cpp-dev \
+    libmysqlclient-dev \
+    clang libc++-dev \
+    libargtable2-0 \
+    libargtable2-dev \
+    libmicrohttpd-dev \
+    
+    # install mysql
+#    mysql-server \
+    mysql-common \
+    mysql-client \
+
+    # install Mysql connection pool
+    libmysqlcppconn-dev \
+
+    # install redis tools
+    redis-tools \
+    
+    # && apt-get clean \
+    && apt-get clean && apt-get autoclean \
+    && apt-get autoremove \
+    && rm -rf /var/lib/apt/lists/*
+    
+
+# WORKDIR /opt/tmp
+    
+     # install mysql++
+# RUN tar -xf /opt/tmp/mysql++-${MYSQL_CPP_VERSION}.tar.gz /opt/tmp/ \
+RUN cd /opt/tmp/mysql++-${MYSQL_CPP_VERSION} \
+    && ./configure \
+    && make -j$(nproc) && make install \
+
+    # install hiredis
+    && git clone https://github.com/redis/hiredis /opt/tmp/hiredis \
+    && cd /opt/tmp/hiredis && make -j$(nproc) && make install \
+
+    # install protobuf
+    # RUN tar -xf /opt/tmp/protobuf-${PROTOBUF_VERSION}.tar.gz \
+    && cd /opt/tmp/protobuf-${PROTOBUF_VERSION} \
+    && ./configure && make -j$(nproc) && make install &&  ldconfig \
+
+    # install protobuf and grpc
+    # RUN git clone -b ${GRPC_VERSION} https://github.com/grpc/grpc /opt/tmp/ \
+    && cd /opt/tmp/grpc \
+    && git submodule update --init \
+      # && cd third_party/protobuf/ \
+      # 确保克隆子模块，更新第三方源码
+      # && git submodule update --init --recursive \
+      # 生成配置脚本
+      # && ./autogen.sh \
+      # 生成Makefile文件，为下一步的编译做准备，可以加上安装路径：--prefix=path ，默认路径为/usr/local/
+      # && ./configure && make -j$(nproc) && make install && ldconfig \
+      # cd ../ \
+    && make -j$(nproc) && make install \
+
+
+    # install catch
+    && git clone https://github.com/catchorg/Catch2.git /opt/tmp/Cach2 \
+    && mkdir /opt/tmp/Cach2/build_Cach2 \
+    && cd /opt/tmp/Cach2/build_Cach2 \
+    && cmake .. && make -j$(nproc) \
+    && make install && ldconfig \
+
+    # install yaml lib
+#RUN git clone https://github.com/jbeder/yaml-cpp.git /opt/tmp/yaml-cpp \
+#    && mkdir /opt/tmp/yaml-cpp/build_yaml \
+#    && cd /opt/tmp/yaml-cpp/build_yaml \
+#    && cmake .. && make -j $(nproc) && make install
+
+    
+    # install json-rpc-cpp
+    && git clone git://github.com/cinemast/libjson-rpc-cpp.git /opt/tmp/libjson-rpc-cpp \
+    && mkdir /opt/tmp/libjson-rpc-cpp/build_libjson \
+    && cd /opt/tmp/libjson-rpc-cpp/build_libjson \
+    && cmake .. && make -j$(nproc) \
+    && make install && ldconfig \
+
+
+    # install curl
+    # RUN tar -xf /opt/tmp/curl-${CURL_VERSION}.tar.gz \
+    #&&  cd /opt/tmp/curl-${CURL_VERSION} \
+    #&& ./configure && make -j$(nproc) \
+    #&& make install && ldconfig \
+
+    # Clean up files and caches
+    && rm -rf /opt/tmp/* 
+
