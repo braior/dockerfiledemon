@@ -9,4 +9,6 @@ RUN apk update && apk add ca-certificates && \
     
 
 ADD plugins/*.ez /opt/rabbitmq/plugins/
+ADD docker-entrypoint.sh /opt/
 RUN rabbitmq-plugins enable --offline autocluster
+RUN rabbitmq-plugins enable --offline rabbitmq_management

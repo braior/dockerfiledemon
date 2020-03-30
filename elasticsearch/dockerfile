@@ -1,0 +1,17 @@
+FROM docker.elastic.co/elasticsearch/elasticsearch:6.1.2
+MAINTAINER leo.lee(lis85@163.com)
+WORKDIR /usr/share/elasticsearch
+USER root
+# copying custom-entrypoint.sh and configuration (elasticsearch.yml, log4j2.properties)
+# to their respective directories in /usr/share/elasticsearch (already the WORKDIR)
+COPY custom-entrypoint.sh bin/
+COPY elasticsearch.yml config/
+COPY log4j2.properties config/
+
+# assuring "elasticsearch" user have appropriate access to configuration and custom-entrypoint.sh
+# make sure custom-entrypoint.sh is executable
+RUN chown elasticsearch:elasticsearch config/elasticsearch.yml config/log4j2.properties bin/custom-entrypoint.sh && \
+    chmod +x bin/custom-entrypoint.sh
+
+# start by running the custom entrypoint (as root)
+CMD ["/bin/bash", "bin/custom-entrypoint.sh"]
