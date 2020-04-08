@@ -186,16 +186,25 @@ RUN apk add --no-cache --virtual .build-deps \
            libzip
 
 # copy 配置到镜像中 
-COPY php.ini /etc/php.ini
-COPY php-fpm.conf /etc/php-fpm.conf
-COPY php-fpm.d /etc/php-fpm.d
+# COPY php.ini /etc/php.ini
+# COPY php-fpm.conf /etc/php-fpm.conf
+# COPY php-fpm.d /etc/php-fpm.d
 
 # Composer安装
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin --filename=composer \
     && composer --ansi --version --no-interaction
 
 # 添加memcached 到配置文件
-RUN echo extension=`find /usr/local/lib/ -name "amqp.so"` >> /etc/php.ini \
+RUN cd /etc/php-fpm.d && cp www.conf.default www.conf \
+    && cp /etc/php-fpm.conf.default /etc/php-fpm.conf \
+    && sed -i "s/;daemonize = yes/daemonize = no/" /etc/php-fpm.conf \
+    && sed -i "s/user = nobody/user = nginx/" /etc/php-fpm.d/www.conf \
+    && sed -i "s/group = nobody/group = nginx/" /etc/php-fpm.d/www.conf \
+    && sed -i "s/;listen.owner = nobody/listen.owner = nginx/" /etc/php-fpm.d/www.conf \
+    && sed -i "s/;listen.group = nobody/listen.group = nginx/" /etc/php-fpm.d/www.conf \
+    && sed -i "s/;listen.mode = 0666/listen.mode = 0666/" /etc/php-fpm.d/www.conf \
+    && sed -i "s/listen = 127.0.0.1:9000/listen = 0.0.0.0:9000/" /etc/php-fpm.d/www.conf \
+    && echo extension=`find /usr/local/lib/ -name "amqp.so"` >> /etc/php.ini \
     # igbinary反序列化库一定要在redis库加载之前加载
     && echo extension=`find /usr/local/lib/ -name "igbinary.so"` >> /etc/php.ini \
     && echo extension=`find /usr/local/lib/ -name "redis.so"` >> /etc/php.ini \
